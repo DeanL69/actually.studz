@@ -1,4 +1,10 @@
 {
   "buildCommand": "npm run build",
-  "framework": "vite"
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "/api/[...catchall]?path=:path*"
+    }
+  ]
 }
