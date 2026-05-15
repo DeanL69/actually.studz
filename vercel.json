@@ -1,7 +1,6 @@
 {
   "buildCommand": "npm run build",
   "framework": "vite",
-  "nodejs": "22.x",
   "env": {
     "NODE_ENV": "production"
   }
