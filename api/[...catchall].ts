@@ -36,10 +36,14 @@ function tryServeStaticFile(pathname: string, res: VercelResponse): boolean {
 
     // Security check - prevent directory traversal
     if (!filePath.startsWith(clientDir)) {
+      console.error("Path traversal attempt detected:", pathname, "resolved to:", filePath);
       return false;
     }
 
+    console.log("Attempting to serve static file:", pathname, "from:", filePath);
+
     if (fs.existsSync(filePath)) {
+      console.log("File exists, serving:", filePath);
       const content = fs.readFileSync(filePath);
       const ext = path.extname(filePath);
 
@@ -63,6 +67,8 @@ function tryServeStaticFile(pathname: string, res: VercelResponse): boolean {
 
       res.send(content);
       return true;
+    } else {
+      console.log("File not found:", filePath);
     }
   } catch (error) {
     console.error("Error serving static file:", error);
