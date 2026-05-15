@@ -316,12 +316,14 @@ function ContentPage() {
               font-family: 'Consolas', 'Courier New', monospace;
               text-align: justify;
               line-height: 1.6;
+              color: #1a1a1a;
             }
             .notes-content .title {
               font-size: 2rem;
               font-weight: bold;
               text-align: center;
               margin-bottom: 2rem;
+              color: #000;
             }
             .notes-content .section {
               margin-bottom: 2rem;
@@ -330,54 +332,76 @@ function ContentPage() {
               font-size: 1.5rem;
               font-weight: bold;
               margin-bottom: 1rem;
+              color: #0038A8;
             }
             .notes-content .subsection {
               margin-left: 2rem;
               margin-bottom: 1rem;
+              color: #333;
             }
             .notes-content .term {
               font-weight: bold;
+              color: #000;
             }
             .notes-content .definition {
               margin-left: 0.5rem;
+              color: #555;
             }
             .notes-content .explanation {
               margin-top: 0.5rem;
               text-align: justify;
+              color: #444;
             }
           `}</style>
 
           <div className="notes-content">
             <div className="title">{notes.content_json.title}</div>
 
-            {notes.content_json.sections.map((section: any, sectionIndex: number) => (
-              <div key={sectionIndex} className="section">
-                <div className="section-heading">
-                  {sectionIndex + 1}. {section.heading}
-                </div>
-
-                {section.terms && section.terms.length > 0 && (
-                  <div>
-                    {section.terms.map((term: any, termIndex: number) => {
-                      const letter = String.fromCharCode(97 + termIndex) // a, b, c, etc.
-                      return (
-                        <div key={termIndex} className="subsection">
-                          <span className="term">{letter}. {term.word}:</span>
-                          <span className="definition">{term.definition}</span>
-                          {term.explanation && (
-                            <div className="explanation">{term.explanation}</div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {section.explanation && (
-                  <div className="explanation">{section.explanation}</div>
-                )}
+            {!notes.content_json.sections || notes.content_json.sections.length === 0 ? (
+              <div className="text-center py-8 text-slate-600">
+                <p>No sections found in notes data</p>
+                <pre className="text-xs mt-4 bg-slate-100 p-4 overflow-auto">
+                  {JSON.stringify(notes.content_json, null, 2).substring(0, 500)}
+                </pre>
               </div>
-            ))}
+            ) : (
+              notes.content_json.sections.map((section: any, sectionIndex: number) => (
+                <div key={sectionIndex} className="section">
+                  <div className="section-heading">
+                    {sectionIndex + 1}. {section.heading}
+                  </div>
+
+                  {section.terms && section.terms.length > 0 && (
+                    <div>
+                      {section.terms.map((term: any, termIndex: number) => {
+                        const letter = String.fromCharCode(97 + termIndex) // a, b, c, etc.
+                        return (
+                          <div key={termIndex} className="subsection">
+                            <span className="term">{letter}. {term.word}:</span>
+                            <span className="definition">{term.definition}</span>
+                            {term.explanation && (
+                              <div className="explanation">{term.explanation}</div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {section.explanation && (
+                    <div className="subsection">
+                      <div className="explanation">{section.explanation}</div>
+                    </div>
+                  )}
+                  
+                  {(!section.terms || section.terms.length === 0) && !section.explanation && (
+                    <div className="subsection text-slate-500 italic">
+                      (Content not available)
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

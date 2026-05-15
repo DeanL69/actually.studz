@@ -57,14 +57,14 @@ function safeParseJSON(text: string): any {
   throw new Error(`Failed to parse JSON. Preview: ${cleaned.substring(0, 200)}...`);
 }
 
-async function createCompletion(prompt: string) {
+async function createCompletion(prompt: string, maxTokens: number = 1200) {
   const completion = await groq.chat.completions.create({
     model: MODEL_NAME,
     messages: [
       { role: "system", content: "You are an assistant that returns ONLY valid JSON. No markdown, no code blocks, no additional text. Start with { and end with }." },
       { role: "user", content: prompt }
     ],
-    max_tokens: 1200,
+    max_tokens: maxTokens,
     temperature: 0.2,
   });
 
@@ -109,7 +109,7 @@ Title: [Topic Name]
 You must respond with ONLY valid JSON. No markdown, no code blocks, no additional text. Start with { and end with }. Return a JSON object with title (string) and sections (array of {heading, terms: [{word, definition}], explanation}).`;
 
   console.log("Generating notes for:", topic);
-  const result = await createCompletion(prompt);
+  const result = await createCompletion(prompt, 2000);
   console.log("Received notes response");
   return result;
 }
