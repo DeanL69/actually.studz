@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import fs from "fs";
+import path from "path";
 
 // Dynamic import to avoid issues at build time
 let serverHandler: any = null;
@@ -16,8 +18,69 @@ async function getServerHandler() {
   return serverHandler;
 }
 
+function isStaticAsset(pathname: string): boolean {
+  return (
+    pathname.startsWith("/assets/") ||
+    pathname.endsWith(".js") ||
+    pathname.endsWith(".css") ||
+    pathname.endsWith(".json") ||
+    pathname.endsWith(".mjs")
+  );
+}
+
+function tryServeStaticFile(pathname: string, res: VercelResponse): boolean {
+  try {
+    const clientDir = path.join(process.cwd(), "dist", "client");
+    const filePath = path.join(clientDir, pathname);
+
+    // Security check - prevent directory traversal
+    if (!filePath.startsWith(clientDir)) {
+      return false;
+    }
+
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath);
+      const ext = path.extname(filePath);
+
+      // Set appropriate content type
+      const contentTypes: Record<string, string> = {
+        ".js": "application/javascript",
+        ".mjs": "application/javascript",
+        ".css": "text/css",
+        ".json": "application/json",
+        ".woff2": "font/woff2",
+        ".woff": "font/woff",
+      };
+
+      const contentType = contentTypes[ext] || "application/octet-stream";
+      res.setHeader("Content-Type", contentType);
+
+      // Cache static assets
+      if (ext === ".js" || ext === ".mjs" || ext === ".css") {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      }
+
+      res.send(content);
+      return true;
+    }
+  } catch (error) {
+    console.error("Error serving static file:", error);
+  }
+  return false;
+}
+
 export default async (req: VercelRequest, res: VercelResponse) => {
   try {
+    const pathname = new URL(req.url || "/", "http://localhost").pathname;
+
+    // Try to serve static files for known asset paths
+    if (isStaticAsset(pathname)) {
+      if (tryServeStaticFile(pathname, res)) {
+        return;
+      }
+    }
+
+    // For everything else, use the SSR handler
     const handler = await getServerHandler();
 
     // Build the full URL
