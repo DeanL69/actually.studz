@@ -1,8 +1,10 @@
 {
   "buildCommand": "npm run build",
+  "outputDirectory": "dist/client",
+  "public": true,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/:path((?!_next/static|_next/image|assets).*)",
       "destination": "/api/[...catchall]"
     }
   ]
