@@ -95,11 +95,18 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       headers: new Headers(req.headers as Record<string, string>),
       body: ["GET", "HEAD"].includes(req.method || "GET")
         ? undefined
-        : JSON.stringify(req.body),
+        : req.body ? JSON.stringify(req.body) : undefined,
     });
 
-    // Call the server handler
-    const response = await handler.fetch(request, {}, {});
+    // Call the server handler (support both fetch method and default callable)
+    let response: Response;
+    if (typeof handler.fetch === "function") {
+      response = await handler.fetch(request, {}, {});
+    } else if (typeof handler === "function") {
+      response = await handler(request, {}, {});
+    } else {
+      throw new Error("Handler is not callable");
+    }
 
     // Set status and headers
     res.status(response.status);
@@ -115,6 +122,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     res.status(500).json({
       error: "Internal Server Error",
       message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     });
   }
 };
