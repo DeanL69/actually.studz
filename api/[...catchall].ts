@@ -8,6 +8,7 @@ let serverHandler: any = null;
 async function getServerHandler() {
   if (!serverHandler) {
     try {
+      // @ts-ignore - dist files are generated at build time
       const serverModule = await import("../dist/server/index.js");
       serverHandler = serverModule.default;
     } catch (error) {
